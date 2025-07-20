@@ -3,19 +3,19 @@
   {
    "cell_type": "code",
    "execution_count": 1,
-   "id": "6227d0bd",
+   "id": "516cced3",
    "metadata": {
     "execution": {
-     "iopub.execute_input": "2025-07-20T04:33:43.165615Z",
-     "iopub.status.busy": "2025-07-20T04:33:43.165263Z",
-     "iopub.status.idle": "2025-07-20T04:33:47.710487Z",
-     "shell.execute_reply": "2025-07-20T04:33:47.709535Z"
+     "iopub.execute_input": "2025-07-20T06:45:11.315177Z",
+     "iopub.status.busy": "2025-07-20T06:45:11.314847Z",
+     "iopub.status.idle": "2025-07-20T06:45:16.542883Z",
+     "shell.execute_reply": "2025-07-20T06:45:16.541799Z"
     },
     "papermill": {
-     "duration": 4.551582,
-     "end_time": "2025-07-20T04:33:47.712443",
+     "duration": 5.236592,
+     "end_time": "2025-07-20T06:45:16.544901",
      "exception": false,
-     "start_time": "2025-07-20T04:33:43.160861",
+     "start_time": "2025-07-20T06:45:11.308309",
      "status": "completed"
     },
     "tags": []
@@ -31,21 +31,38 @@
    ]
   },
   {
+   "cell_type": "markdown",
+   "id": "d9ef4fb2",
+   "metadata": {
+    "papermill": {
+     "duration": 0.002344,
+     "end_time": "2025-07-20T06:45:16.552156",
+     "exception": false,
+     "start_time": "2025-07-20T06:45:16.549812",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "source": [
+    "Dispersion tolerance in *correct* function has been changed from 0.74 to 0.90"
+   ]
+  },
+  {
    "cell_type": "code",
    "execution_count": 2,
-   "id": "aff444dc",
+   "id": "b2636d55",
    "metadata": {
     "execution": {
-     "iopub.execute_input": "2025-07-20T04:33:47.719674Z",
-     "iopub.status.busy": "2025-07-20T04:33:47.719054Z",
-     "iopub.status.idle": "2025-07-20T04:33:47.738402Z",
-     "shell.execute_reply": "2025-07-20T04:33:47.737416Z"
+     "iopub.execute_input": "2025-07-20T06:45:16.559258Z",
+     "iopub.status.busy": "2025-07-20T06:45:16.558808Z",
+     "iopub.status.idle": "2025-07-20T06:45:16.579817Z",
+     "shell.execute_reply": "2025-07-20T06:45:16.578822Z"
     },
     "papermill": {
-     "duration": 0.024828,
-     "end_time": "2025-07-20T04:33:47.740250",
+     "duration": 0.026333,
+     "end_time": "2025-07-20T06:45:16.581501",
      "exception": false,
-     "start_time": "2025-07-20T04:33:47.715422",
+     "start_time": "2025-07-20T06:45:16.555168",
      "status": "completed"
     },
     "tags": []
@@ -99,7 +116,8 @@
     "            return mxm\n",
     "\n",
     "        df_subms['abs(mx-m)']   = df_subms.apply(lambda x: amxm   (x), axis=1)\n",
-    "        \n",
+    "        df_subms['row_mean'] = df_subms[cols].mean(axis=1)\n",
+    "        df_subms['row_std']  = df_subms[cols].std(axis=1)\n",
     "        df_subms['alls']        = df_subms.apply(lambda x: alls   (x), axis=1)\n",
     "        df_subms[sls[\"target\"]] = df_subms.apply(lambda x: correct(x), axis=1)\n",
     "        \n",
@@ -144,19 +162,19 @@
   {
    "cell_type": "code",
    "execution_count": 3,
-   "id": "860fb9a0",
+   "id": "bc860c24",
    "metadata": {
     "execution": {
-     "iopub.execute_input": "2025-07-20T04:33:47.746491Z",
-     "iopub.status.busy": "2025-07-20T04:33:47.746107Z",
-     "iopub.status.idle": "2025-07-20T04:33:47.757200Z",
-     "shell.execute_reply": "2025-07-20T04:33:47.756089Z"
+     "iopub.execute_input": "2025-07-20T06:45:16.587625Z",
+     "iopub.status.busy": "2025-07-20T06:45:16.587283Z",
+     "iopub.status.idle": "2025-07-20T06:45:16.598822Z",
+     "shell.execute_reply": "2025-07-20T06:45:16.597563Z"
     },
     "papermill": {
-     "duration": 0.016182,
-     "end_time": "2025-07-20T04:33:47.758967",
+     "duration": 0.01676,
+     "end_time": "2025-07-20T06:45:16.600708",
      "exception": false,
-     "start_time": "2025-07-20T04:33:47.742785",
+     "start_time": "2025-07-20T06:45:16.583948",
      "status": "completed"
     },
     "tags": []
@@ -211,8 +229,12 @@
     "    # For example, we could use the variance or ranking information\n",
     "    if 'abs(mx-m)' in df_ensemble.columns:\n",
     "        prophet_df['variance'] = df_ensemble['abs(mx-m)']\n",
+    "        prophet_df['row_mean']   = df_ensemble['row_mean']\n",
+    "        prophet_df['row_std']    = df_ensemble['row_std']\n",
+    "\n",
     "        model.add_regressor('variance', prior_scale=5.0)\n",
-    "    \n",
+    "        model.add_regressor('row_mean', prior_scale=3.0)\n",
+    "        model.add_regressor('row_std',  prior_scale=3.0)\n",
     "    # Fit the model\n",
     "    print(\"Fitting Prophet model...\")\n",
     "    model.fit(prophet_df)\n",
@@ -221,6 +243,8 @@
     "    future = prophet_df[['ds']].copy()  # Use the same dataframe for predictions\n",
     "    if 'variance' in prophet_df.columns:\n",
     "        future['variance'] = prophet_df['variance']\n",
+    "        future['row_mean'] = prophet_df['row_mean']\n",
+    "        future['row_std']  = prophet_df['row_std']\n",
     "    \n",
     "    forecast = model.predict(future)\n",
     "    # Extract predictions\n",
@@ -246,19 +270,19 @@
   {
    "cell_type": "code",
    "execution_count": 4,
-   "id": "faa55a21",
+   "id": "44934944",
    "metadata": {
     "execution": {
-     "iopub.execute_input": "2025-07-20T04:33:47.765615Z",
-     "iopub.status.busy": "2025-07-20T04:33:47.764858Z",
-     "iopub.status.idle": "2025-07-20T04:33:47.772468Z",
-     "shell.execute_reply": "2025-07-20T04:33:47.771295Z"
+     "iopub.execute_input": "2025-07-20T06:45:16.606649Z",
+     "iopub.status.busy": "2025-07-20T06:45:16.606312Z",
+     "iopub.status.idle": "2025-07-20T06:45:16.613351Z",
+     "shell.execute_reply": "2025-07-20T06:45:16.612389Z"
     },
     "papermill": {
-     "duration": 0.013373,
-     "end_time": "2025-07-20T04:33:47.774656",
+     "duration": 0.011789,
+     "end_time": "2025-07-20T06:45:16.615008",
      "exception": false,
-     "start_time": "2025-07-20T04:33:47.761283",
+     "start_time": "2025-07-20T06:45:16.603219",
      "status": "completed"
     },
     "tags": []
@@ -282,26 +306,25 @@
     "                       { 'name':file_short_names[1],'weight':0.20, },\n",
     "                       { 'name':file_short_names[2],'weight':0.21, },\n",
     "                       { 'name':file_short_names[3],'weight':0.22, },\n",
-    "                       { 'name':file_short_names[4],'weight':0.3, }]\n",
-    "         }"
+    "                       { 'name':file_short_names[4],'weight':0.3, }]}"
    ]
   },
   {
    "cell_type": "code",
    "execution_count": 5,
-   "id": "65fc0908",
+   "id": "11e6612d",
    "metadata": {
     "execution": {
-     "iopub.execute_input": "2025-07-20T04:33:47.781264Z",
-     "iopub.status.busy": "2025-07-20T04:33:47.780612Z",
-     "iopub.status.idle": "2025-07-20T04:45:14.991013Z",
-     "shell.execute_reply": "2025-07-20T04:45:14.989772Z"
+     "iopub.execute_input": "2025-07-20T06:45:16.621156Z",
+     "iopub.status.busy": "2025-07-20T06:45:16.620848Z",
+     "iopub.status.idle": "2025-07-20T06:57:23.910853Z",
+     "shell.execute_reply": "2025-07-20T06:57:23.909143Z"
     },
     "papermill": {
-     "duration": 687.215606,
-     "end_time": "2025-07-20T04:45:14.993293",
+     "duration": 727.295866,
+     "end_time": "2025-07-20T06:57:23.913414",
      "exception": false,
-     "start_time": "2025-07-20T04:33:47.777687",
+     "start_time": "2025-07-20T06:45:16.617548",
      "status": "completed"
     },
     "tags": []
@@ -4223,8 +4246,8 @@
      "name": "stderr",
      "output_type": "stream",
      "text": [
-      "04:40:23 - cmdstanpy - INFO - Chain [1] start processing\n",
-      "04:43:28 - cmdstanpy - INFO - Chain [1] done processing\n"
+      "06:52:21 - cmdstanpy - INFO - Chain [1] start processing\n",
+      "06:55:36 - cmdstanpy - INFO - Chain [1] done processing\n"
      ]
     },
     {
@@ -4253,19 +4276,19 @@
   {
    "cell_type": "code",
    "execution_count": 6,
-   "id": "6e80719c",
+   "id": "a7e10002",
    "metadata": {
     "execution": {
-     "iopub.execute_input": "2025-07-20T04:45:15.008556Z",
-     "iopub.status.busy": "2025-07-20T04:45:15.008182Z",
-     "iopub.status.idle": "2025-07-20T04:45:15.022273Z",
-     "shell.execute_reply": "2025-07-20T04:45:15.021274Z"
+     "iopub.execute_input": "2025-07-20T06:57:23.929172Z",
+     "iopub.status.busy": "2025-07-20T06:57:23.928794Z",
+     "iopub.status.idle": "2025-07-20T06:57:23.943083Z",
+     "shell.execute_reply": "2025-07-20T06:57:23.942121Z"
     },
     "papermill": {
-     "duration": 0.023753,
-     "end_time": "2025-07-20T04:45:15.023760",
+     "duration": 0.024433,
+     "end_time": "2025-07-20T06:57:23.944752",
      "exception": false,
-     "start_time": "2025-07-20T04:45:15.000007",
+     "start_time": "2025-07-20T06:57:23.920319",
      "status": "completed"
     },
     "tags": []
@@ -4503,14 +4526,14 @@
   },
   "papermill": {
    "default_parameters": {},
-   "duration": 698.101736,
-   "end_time": "2025-07-20T04:45:16.056667",
+   "duration": 739.286606,
+   "end_time": "2025-07-20T06:57:24.977703",
    "environment_variables": {},
    "exception": null,
    "input_path": "__notebook__.ipynb",
    "output_path": "__notebook__.ipynb",
    "parameters": {},
-   "start_time": "2025-07-20T04:33:37.954931",
+   "start_time": "2025-07-20T06:45:05.691097",
    "version": "2.6.0"
   }
  },
